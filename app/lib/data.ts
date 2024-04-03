@@ -123,7 +123,7 @@ export async function fetchFilteredInvoices(
     return invoices.rows;
   } catch (error) {
     console.error('Database Error:', error);
-    throw new Error('Failed to fetch invoices.');
+    // throw new Error('Failed to fetch invoices.');
   }
 }
 
@@ -167,7 +167,7 @@ export async function fetchInvoiceById(id: string) {
       // Convert amount from cents to dollars
       amount: invoice.amount / 100,
     }));
-
+    console.log(invoice);
     return invoice[0];
   } catch (error) {
     console.error('Database Error:', error);
