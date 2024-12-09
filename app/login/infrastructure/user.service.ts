@@ -60,7 +60,7 @@ export class UserService implements UserRepository{
 
 
     async add(entity: IUser): Promise<IUser> {
-        console.log(entity);
+        console.log("entity: ", entity);
         const resp = await fetch(this.apiBasePath + "/dev/user/register", {
             method: 'POST',
             headers: {

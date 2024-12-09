@@ -3,8 +3,6 @@ import React, { createContext, useEffect, useState } from "react";
 import { UserManagement } from '../../application/userManagement'
 import { IUser, emptyUser} from '../../domain/IUser'
 import { UserService } from "../../infrastructure/user.service";
-// import { useTranslation } from 'react-i18next';
-// import { ToastEventManager } from '@core/infrastructure/utilities/EventsManager';
 
 
 export type UserContextType = {
@@ -43,15 +41,17 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
         const data = await manager.registerUser(user); // Llama al método de UserManagement.
 
         if (data.success) { // Supone que 'data.success' indica el éxito de la operación.
-            console.log("User registered successfully:", user);
-            setUpdateView(new Date()); // Actualiza la vista.
+            console.log("User registered successfully:", data);
+            // setUpdateView(new Date()); // Actualiza la vista.
         } else {
             console.warn("Registration failed:", data);
+            throw new Error
             // return undefined; // Devuelve undefined si no fue exitoso.
         }
     } catch (error) {
         console.error("Error registering user:", error);
-        // return null; // Devuelve null en caso de error.
+        throw new Error
+    // return null; // Devuelve null en caso de error.
     }
 };
 

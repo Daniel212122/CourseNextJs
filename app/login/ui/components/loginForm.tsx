@@ -1,22 +1,18 @@
 'use client'
 import React, { useState, useEffect } from 'react';
-import './login.css';
+import '@/app/ui/login.css';
 import { useFormState, useFormStatus } from 'react-dom';
-import { authenticate } from '../lib/action';
-import { Button } from './button';
 import { ArrowRightIcon } from '@heroicons/react/20/solid';
 import { ExclamationCircleIcon } from '@heroicons/react/24/outline';
-import { UserContext, UserContextType } from '../login/ui/context/UserContext';
-import { IUser } from '../login/domain/IUser';
+import { UserContext, UserContextType } from '../context/UserContext';
+import { Button } from '@/app/ui/button';
+import { authenticate } from '@/app/lib/action';
+import { IUser } from '../../domain/IUser';
 
 const LoginForm: React.FC = () => {
-    const [errorMessage, dispatch] = useFormState(authenticate,undefined);
-    // const
-    // const [errorCreatedUser, CreatedUser ] = (register, undefined);
-  // Tipos explícitos para el estado
+  const [errorMessage, dispatch] = useFormState(authenticate,undefined);
   const [showLoginForm, setShowLoginForm] = useState<boolean>(true);
   const { currentUser, setCurrentUser, isEdit, setIsEdit, registerUser } = React.useContext(UserContext) as UserContextType;
-  const [reload, setReload] = useState(new Date());
   const [errorRegister, setErrorRegister] = useState<string | null>(null);
   const [registered, setRegistered] = useState<string | null>(null);
 
@@ -39,19 +35,12 @@ const LoginForm: React.FC = () => {
 ) => {
     event.preventDefault();
     try {
-        const result = await registerUser(currentUser);
-        console.log("result: ", result )
-        if (result) {
-            console.log("User successfully registered:", result);
-            setRegistered("User successfully registered")
-            console.log("errorRegister", errorRegister)
-        } else {
-            setErrorRegister("User registration failed or was invalid")
-            console.log("errorRegister", errorRegister)
-            console.warn("User registration failed or was invalid.");
-        }
+       await registerUser(currentUser);
+       setRegistered("User successfully registered")
+        // console.log("result: ", result )
+        console.log("User successfully registered:", registered);
     } catch (error) {
-        setErrorRegister("Error during registration:")
+        setErrorRegister("the email already exists")
         console.log("errorRegister", errorRegister)
         console.error("Error during registration:", error);
     }
@@ -69,11 +58,11 @@ const LoginForm: React.FC = () => {
 
   useEffect(() => {
     // Si hay un mensaje registrado o de error, establece un temporizador
-    if (registered || errorRegister || errorMessage) {
+    if (registered || errorRegister) {
         const timer = setTimeout(() => {
             setRegistered(null);
             setErrorRegister(null);
-        }, 5000); // 3000 ms = 3 segundos
+        }, 10000); // 10000 ms = 10 segundos
 
         // Limpia el temporizador cuando el componente se desmonte o se actualice
         return () => clearTimeout(timer);
@@ -146,7 +135,7 @@ const LoginForm: React.FC = () => {
                     {errorRegister?
                     
                       (<p className="text-sm text-red-500">{errorRegister}</p>):
-                      (<p className="text-sm text-blue-500">{registered}</p>)
+                      (<p className="text-sm text-green-500">{registered}</p>)
                     }
                     
                   </>
