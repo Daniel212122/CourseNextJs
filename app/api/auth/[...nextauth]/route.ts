@@ -64,7 +64,7 @@ const handler = NextAuth({
         async session({ session, token }) {
           session.user = {
             id: token.id as string | undefined,
-            email: token.email as string | undefined,
+            email: token.email as string ,
             phonenumber: token.phonenumber as string | undefined,
             name: token.name as string | undefined,
             lastname: token.lastname as string | undefined,

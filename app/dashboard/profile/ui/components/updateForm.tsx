@@ -136,7 +136,13 @@ const UpdateForm: React.FC = () => {
           </div>
         </form>
       </div>
-    </>
+    <div>
+      <h1>Data User</h1>
+      <pre>
+        <code>{JSON.stringify(data, null, 2)}</code>
+      </pre>
+    </div> 
+    </> 
   );
 };
 
