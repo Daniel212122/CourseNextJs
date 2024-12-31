@@ -18,7 +18,7 @@ export class UserService implements UserRepository{
     async add(entity: IUser): Promise<IUser> {
         console.log("entity: ", entity);
         // const resp = await fetch('https://a9ub0zdqbh.execute-api.us-east-1.amazonaws.com/dev/user/register', {
-            const resp = await fetch('http://localhost:4000/dev/user/register', {
+            const resp = await fetch(this.apiBasePath + '/register', {
             method: 'POST',
             headers: {
                 'Access-Control-Allow-Origin': '*',
@@ -55,7 +55,7 @@ export class UserService implements UserRepository{
     }
 
     async update(entity: IUser): Promise<IUser> {
-        const resp = await fetch("http://localhost:4000/dev/user/update", {
+        const resp = await fetch(this.apiBasePath +"/update", {
             method: 'PUT',
             headers: {
                 'Access-Control-Allow-Origin': '*',
@@ -93,7 +93,7 @@ export class UserService implements UserRepository{
         }
     }
     async delete(id: string): Promise<void> {
-        const resp = await fetch(this.apiBasePath + "/user/" + id, {
+        const resp = await fetch(this.apiBasePath + id, {
             method: 'DELETE',
             headers: {
                 'Access-Control-Allow-Origin': '*',
