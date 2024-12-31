@@ -7,7 +7,7 @@ import NavLinks from './nav-links';
 import Image from 'next/image';
 export default function SideNav() {
   const { data } = useSession();
-  console.log("Session: ", data);
+  // console.log("Session: ", data);
 
   return (
     <div className="flex h-full flex-col px-3 py-4 md:px-2">
