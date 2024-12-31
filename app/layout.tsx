@@ -1,7 +1,7 @@
 import '@/app/ui/global.css'
 import { inter } from './ui/fonts';
 import { Metadata } from 'next';
-
+import SessionProvider from './core/ui/components/SessionProvider';
 export const metadata: Metadata = {
   title: {
     template: '%s | Acme Dashboard',
@@ -17,7 +17,14 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`${inter.className}antialiased`}>{children}</body>
+      <head>
+      <link href="/css/app.css" rel="stylesheet" />
+      </head>
+      <body className={`${inter.className}antialiased`}>
+        <SessionProvider>
+          {children}
+        </SessionProvider>
+      </body>
     </html>
   );
 }

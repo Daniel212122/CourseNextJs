@@ -6,16 +6,20 @@ import { ArrowRightIcon } from '@heroicons/react/20/solid';
 import { ExclamationCircleIcon } from '@heroicons/react/24/outline';
 import { UserContext, UserContextType } from '../context/UserContext';
 import { Button } from '@/app/ui/button';
-import { authenticate } from '@/app/lib/action';
+import { signIn } from "next-auth/react";
+// import { authenticate } from '@/app/lib/action';
 import { IUser } from '../../domain/IUser';
-
+import { useRouter } from "next/navigation";
 const LoginForm: React.FC = () => {
-  const [errorMessage, dispatch] = useFormState(authenticate,undefined);
+  const [errorLogin, setErrorLogin] = useState<string | null>(null)
   const [showLoginForm, setShowLoginForm] = useState<boolean>(true);
-  const { currentUser, setCurrentUser, isEdit, setIsEdit, registerUser } = React.useContext(UserContext) as UserContextType;
-  const [errorRegister, setErrorRegister] = useState<string | null>(null);
+  const { currentUser, setCurrentUser, isEdit, setIsEdit, registerUser} = React.useContext(UserContext) as UserContextType;
   const [registered, setRegistered] = useState<string | null>(null);
-
+  const router = useRouter();
+  const [email, setEmail] = useState<string>("daniel@gmail.com");
+  const [password, setPassword] = useState<string>("123456Df");
+  // const [role,setRole] = useState<IUser | null>(null)
+  const roles = ['Admin', 'Viewer', 'Operator'];
   // Ajusta el formulario visible según el ancho de pantalla
   const handleResize = (): void => {
     if (window.innerWidth > 850) {
@@ -24,27 +28,65 @@ const LoginForm: React.FC = () => {
   };
 
   // let errorRegister 
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setErrorLogin(null);
+    // setErrors([]);
 
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const responseNextAuth = await signIn("credentials", {
+      email,
+      password,
+      redirect: false,
+    });
+    console.log("responseNextAuth: ", responseNextAuth)
+
+    if (responseNextAuth?.error) {
+      console.log("Error: ", responseNextAuth.error)
+      setErrorLogin(responseNextAuth.error);
+      return;
+    }
+    router.push("/dashboard");
+  };
+
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = event.target;
     setCurrentUser((prevUser: IUser) => ({ ...prevUser, [name]: value }));
 };
 
-  const handleSubmitRegister = async (
-    event: React.FormEvent<HTMLFormElement>
+const handleSubmitRegister = async (
+  event: React.FormEvent<HTMLFormElement>
 ) => {
-    event.preventDefault();
-    try {
-       await registerUser(currentUser);
-       setRegistered("User successfully registered")
-        // console.log("result: ", result )
-        console.log("User successfully registered:", registered);
-    } catch (error) {
-        setErrorRegister("the email already exists")
-        console.log("errorRegister", errorRegister)
-        console.error("Error during registration:", error);
+  event.preventDefault();
+  setRegistered(null); // Reinicia el estado de registro
+
+  try {
+    // Llama a la función para registrar al usuario
+    await registerUser(currentUser);
+
+    // Establece el mensaje de éxito si el registro fue exitoso
+    setRegistered("User successfully registered");
+
+    // Intenta iniciar sesión automáticamente después del registro
+    const responseNextAuth = await signIn("credentials", {
+      email: currentUser.email, // Usa el email registrado
+      password: currentUser.password, // Usa la contraseña registrada
+      redirect: false, // Redirige manualmente después
+    });
+
+    if (responseNextAuth?.error) {
+      console.error("Error al iniciar sesión después del registro:", responseNextAuth.error);
+      setRegistered("Error during login after registration");
+      return;
     }
+
+    // Redirige al dashboard
+    router.push("/dashboard");
+  } catch (err) {
+    console.error("Error durante el registro:", err);
+    setRegistered(""+ err);
+  }
 };
+;
 
   useEffect(() => {
     window.addEventListener('resize', handleResize);
@@ -55,20 +97,6 @@ const LoginForm: React.FC = () => {
 
   const iniciarSesion = (): void => setShowLoginForm(true);
   const register = (): void => setShowLoginForm(false);
-
-  useEffect(() => {
-    // Si hay un mensaje registrado o de error, establece un temporizador
-    if (registered || errorRegister) {
-        const timer = setTimeout(() => {
-            setRegistered(null);
-            setErrorRegister(null);
-        }, 10000); // 10000 ms = 10 segundos
-
-        // Limpia el temporizador cuando el componente se desmonte o se actualice
-        return () => clearTimeout(timer);
-    }
-}, [registered, errorRegister]);
-
 
   return (
     <div className="App">
@@ -87,24 +115,32 @@ const LoginForm: React.FC = () => {
               <button onClick={register}>Registrarse</button>
             </div>
           </div>
-
           {/* Login y Register */}
           <div className="contenedor__login-register">
             {/* Login */}
-            <form action={dispatch} className="formulario__login">
+            <form onSubmit={handleSubmit} className="formulario__login">
               <h2>Iniciar Sesión</h2>
-              <input type="text" name="email" placeholder="Correo Electrónico"
+              <input type="text" name="email" placeholder="Correo Electrónico" 
+              value={email} onChange={(event) => setEmail(event.target.value)}
               pattern="^\w+([.\-_+]?[\w]+)*@\w+([.\-_]?\w+)*(\.\w{2,10})+$" />
-              <input type="password" name="password" placeholder="Contraseña" />
+              <input type="password" name="password" placeholder="Contraseña" required
+              value={password} onChange={(event)=> setPassword(event.target.value)}
+              />
               <LoginButton />
+              <button
+                onClick={() => signIn("google", {callbackUrl:"/dashboard"})}
+                className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+              >
+                Iniciar sesión con Google
+              </button>
                 <div  
               className="flex h-8 items-end space-x-1"
               aria-live='polite'
               aria-atomic='true'>
-                {errorMessage && (
+                {errorLogin && (
                   <>
                   <ExclamationCircleIcon className="h-5 w-5 text-red-500" />
-                  <p className="text-sm text-red-500">{errorMessage}</p>
+                  <p className="text-sm text-red-500">{errorLogin}</p>
                 </>
                 )}
               </div>
@@ -113,34 +149,48 @@ const LoginForm: React.FC = () => {
             {/* Register */}
             <form onSubmit={handleSubmitRegister} className="formulario__register">
               <h2>Registrarse</h2>
-              <input onChange={handleChange} required type="text" placeholder="Nombre" name='firstname'
+              <input onChange={handleChange} required type="text" placeholder="Name" name='name'
               pattern='^[A-Za-zÀ-ÖØ-öø-ÿ ]{3,50}$'/>
-              <input onChange={handleChange} required type="text" placeholder="Apellido" name='lastname'
+              <input onChange={handleChange} required type="text" placeholder="Lastname" name='lastname'
               pattern='^[A-Za-zÀ-ÖØ-öø-ÿ ]{3,50}$'/>
-              <input onChange={handleChange} required type="number" placeholder="Numero" name='phonenumber'
+              <input onChange={handleChange} required type="number" placeholder="Phone number" name='phonenumber'
               pattern='/^\d{7,15}$'/>
               <input onChange={handleChange} required type="text" placeholder="Email" name='email'
               pattern="^\w+([.\-_+]?[\w]+)*@\w+([.\-_]?\w+)*(\.\w{2,10})+$" />
               <input onChange={handleChange} required type="password" placeholder="Password" name='password'
               pattern='^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$'/>
-
+              <label htmlFor='role'>Role:</label>
+              <select
+                name="role"
+                required
+                onChange={handleChange}
+                defaultValue=""
+              >
+                <option value="" disabled>
+                  Seleccione un rol
+                </option>
+                {roles.map((role) => (
+                  <option key={role} value={role}>
+                    {role}
+                  </option>
+                ))}
+              </select>
               <RegisterButton />
-              <div 
+              <div
                 className="flex h-8 items-end space-x-1"
-                aria-live='polite'
-                aria-atomic='true'>
-                  {registered || errorRegister  &&(
-                    <>
-                    <ExclamationCircleIcon className="h-5 w-5 text-red-500" />
-                    {errorRegister?
-                    
-                      (<p className="text-sm text-red-500">{errorRegister}</p>):
-                      (<p className="text-sm text-green-500">{registered}</p>)
-                    }
-                    
-                  </>
-                  )}
-              </div>
+                aria-live="polite"
+                aria-atomic="true"
+              >
+                {registered=="Error"? (
+                  <>  
+                  <ExclamationCircleIcon className="h-5 w-5 text-red-500" />
+                  <p className="text-sm text-red-500">{registered}</p>
+                </>
+                ) : 
+                <p className="text-sm text-green-500">{registered}</p>
+                }
+                </div>
+
             </form>
           </div>
         </div>
@@ -161,20 +211,9 @@ function LoginButton() {
   function RegisterButton() {
     const { pending } = useFormStatus();
     return (
-      <button type="submit" className="mt-4 w-full" aria-disabled={pending}>
-        Register <ArrowRightIcon className="ml-auto h-5 w-5 text-gray-50" />
+      <button type="submit" className="mt-4 w-full" aria-disabled={pending}
+      // onClick={()=> signIn("credentials", {callbackUrl: "/dashboard"})}
+      > Register <ArrowRightIcon className="ml-auto h-5 w-5 text-gray-50" />
       </button>
     );
   }
-
-// se registra y se guarda usuario en la base de datos 
-/*Pendientes:
-
-1- notificar sobre registro del usuario creado o la falla al registrar ✅
-2- modificar los valores enviados por el front y guardados desde el backend, deacuerdo a los datos necesarios ✅
-3 
-*/
-// Queda  pendiente organizar backend para que guarde todos los  datos en la dynamo ✅
-// desde el front validacion de datos, password, email, name, phonenumber ✅
-// realizar limpieza del formulario de registro 
-// realizar corregir codigo por categoria y carpeta 
