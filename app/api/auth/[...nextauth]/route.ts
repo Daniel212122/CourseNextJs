@@ -1,10 +1,11 @@
-import NextAuth from "next-auth";
+import NextAuth, { AuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from 'next-auth/providers/google'
 // import { useRouter } from "next/navigation";
 // const router = useRouter();
-const handler = NextAuth({
-    providers: [
+export const authOptions: AuthOptions = {
+  secret: process.env.AUTH_SECRET,
+  providers: [
       GoogleProvider({
         clientId: process.env.GOOGLE_CLIENT_ID as string,
         clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
@@ -46,40 +47,42 @@ const handler = NextAuth({
           }
         }),
       ],
-      callbacks: {
-        async jwt({ token, user, account }) {
-          if(account)token.provider = account.provider;
-          if (user) {
-            token.id = user.id;
-            token.email = user.email;
-            token.phonenumber = user.phonenumber;
-            token.name = user.name;
-            token.lastname = user.lastname;
-            token.status = user.status;
-            token.role = user.role;
-            token.image = user.image;
-          }
-          return token;
+      
+        callbacks: {
+          async jwt({ token, user, account }) {
+            if(account)token.provider = account.provider;
+            if (user) {
+              token.id = user.id;
+              token.email = user.email;
+              token.phonenumber = user.phonenumber;
+              token.name = user.name;
+              token.lastname = user.lastname;
+              token.status = user.status;
+              token.role = user.role;
+              token.image = user.image;
+            }
+            return token;
+          },
+          async session({ session, token }) {
+            session.user = {
+              id: token.id as string | undefined,
+              email: token.email as string ,
+              phonenumber: token.phonenumber as string | undefined,
+              name: token.name as string | undefined,
+              lastname: token.lastname as string | undefined,
+              password: token.password as string | undefined,
+              status: token.status as string | undefined,
+              role: token.role as string | undefined,
+              image: token.image as string | undefined,
+              provider: token.provider as string | undefined,
+            };
+            return session;
+          },
         },
-        async session({ session, token }) {
-          session.user = {
-            id: token.id as string | undefined,
-            email: token.email as string ,
-            phonenumber: token.phonenumber as string | undefined,
-            name: token.name as string | undefined,
-            lastname: token.lastname as string | undefined,
-            password: token.password as string | undefined,
-            status: token.status as string | undefined,
-            role: token.role as string | undefined,
-            image: token.image as string | undefined,
-            provider: token.provider as string | undefined,
-          };
-          return session;
-        },
-      },
-      pages: {
-        signIn:"/login"
-      }
-})
+        pages: {
+          signIn:"/login"
+        }
+  } 
 
+  const handler = NextAuth(authOptions);
 export { handler as GET, handler as POST}
