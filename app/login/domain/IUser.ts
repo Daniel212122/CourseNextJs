@@ -2,11 +2,13 @@ export interface IUser {
 	id?: string;
 	email: string;
 	phonenumber?: string;
-	firstname?: string;
+	name?: string;
 	lastname?: string;
 	password?: string;
 	status?: string;
-	// roles?: string[]
+	role?: string;
+	image?: string;
+	provider?:string;
 };
 
 export const emptyUser: IUser = {

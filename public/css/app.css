@@ -1,0 +1,26 @@
+label {
+    position: center;
+    left: 50px;
+    top: 65px;
+    background-color: #ffff;
+    padding: 0px 5px;
+    transition: transform 0.3s ease color 0.3s ease;
+    margin-top: 5px;
+  }
+  /* input:focus+label{ 
+    transform: translateY(-25px);
+    color: #0051ff
+  } */
+  
+  input:focus {
+    border-color: #0051ff;
+  } 
+  .form-user-update{
+    display: flex;
+    align-items: "center";
+    justify-items: center;
+    justify-content: start;
+    flex-direction: column;
+    width: 50%;
+    margin: 20px;
+  }
