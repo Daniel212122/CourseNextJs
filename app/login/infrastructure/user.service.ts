@@ -19,7 +19,7 @@ export class UserService implements UserRepository{
     }
     async add(entity: IUser): Promise<IUser> {
         // console.log("entity: ", entity);
-            const resp = await fetch(this.apiBasePath+"/dev/user/login", {
+            const resp = await fetch(this.apiBasePath+"/dev/user", {
             method: 'POST',
             headers: {
                 'Access-Control-Allow-Origin': '*',
