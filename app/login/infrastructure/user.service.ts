@@ -1,9 +1,12 @@
 import { IUser } from "../domain/IUser";
 import { UserRepository } from "../domain/userRepository";
+import Cookies from 'js-cookie';
+
 
 export class UserService implements UserRepository{
     // private apiBasePath = "http://localhost:4000/dev/user"; 
-    private apiBasePath = 'https://a9ub0zdqbh.execute-api.us-east-1.amazonaws.com/dev/user';
+    private apiBasePath = process.env.BASEPATH_API_USERS;
+    // private apiBasePath = 'https://a9ub0zdqbh.execute-api.us-east-1.amazonaws.com/dev/user';
 
     constructor(){
     
@@ -14,11 +17,9 @@ export class UserService implements UserRepository{
     getById(id: string): Promise<IUser | null> {
         throw new Error("Method not implemented.");
     }
-
     async add(entity: IUser): Promise<IUser> {
-        console.log("entity: ", entity);
-        // const resp = await fetch('https://a9ub0zdqbh.execute-api.us-east-1.amazonaws.com/dev/user/register', {
-            const resp = await fetch(this.apiBasePath + '/register', {
+        // console.log("entity: ", entity);
+            const resp = await fetch(this.apiBasePath+"/dev/user/login", {
             method: 'POST',
             headers: {
                 'Access-Control-Allow-Origin': '*',
@@ -29,8 +30,11 @@ export class UserService implements UserRepository{
         });
         //console.log(resp);
         const respText = resp.clone();
+        // console.log("respText: ", respText)
+        // console.log("resp: ", resp)
         if (resp.status == 200) {
-            try {             
+            try {       
+                // console.log("resp: ", resp)      
                 return Promise.resolve(await resp.json());
               } catch (e) {
                 //console.log("error: " + e);
@@ -55,14 +59,22 @@ export class UserService implements UserRepository{
     }
 
     async update(entity: IUser): Promise<IUser> {
-        const resp = await fetch(this.apiBasePath +"/update", {
+        // console.log("token: ", entity.token)
+        // console.log("entity: ", entity)
+        const {name, lastname, phonenumber,password, email} = entity
+        const data = {name, lastname, phonenumber,password, email}
+        // if(){
+        //     throw new Error('No token found, please log in again');
+        // }
+        const resp = await fetch(this.apiBasePath+ "/dev/user", {
             method: 'PUT',
             headers: {
                 'Access-Control-Allow-Origin': '*',
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Authorization': `bearer ${entity.token}`
             },
             mode: 'cors',
-            body: JSON.stringify({ user: entity, email: entity.email }),
+            body: JSON.stringify({ user: data, email: data.email }),
         });
         //console.log(resp);
         const respText = resp.clone();
@@ -70,7 +82,7 @@ export class UserService implements UserRepository{
             try {                
                 return Promise.resolve(await resp.json());
               } catch (e) {
-                console.log("error: " + e);
+                // console.log("error: " + e);
                 const errorTxt = await respText.text();
                 throw new Error(errorTxt);
               }
@@ -92,12 +104,15 @@ export class UserService implements UserRepository{
             
         }
     }
-    async delete(id: string): Promise<void> {
-        const resp = await fetch(this.apiBasePath + id, {
+    async delete(entity: IUser): Promise<void> {
+        // console.log("Entity: ", entity)
+        // console.log("token: ", entity.token)
+        const resp = await fetch(this.apiBasePath+"/dev/user/"+ entity.email, {
             method: 'DELETE',
             headers: {
                 'Access-Control-Allow-Origin': '*',
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Authorization': `bearer ${entity.token}`
             },
             mode: 'cors',
         });

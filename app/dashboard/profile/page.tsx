@@ -1,7 +1,7 @@
 import { UserProvider } from '@/app/login/ui/context/UserContext';
 import AcmeLogo from '@/app/ui/acme-logo';
 import { Metadata } from 'next';
-import UpdateForm from './ui/components/updateForm';
+import UpdateForm from '../../login/ui/components/updateForm';
 
 // import { UserProvider } from './ui/context/UserContext';
 export const metadata: Metadata = {

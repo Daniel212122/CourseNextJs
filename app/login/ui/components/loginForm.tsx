@@ -38,10 +38,10 @@ const LoginForm: React.FC = () => {
       password,
       redirect: false,
     });
-    console.log("responseNextAuth: ", responseNextAuth)
+    // console.log("responseNextAuth: ", responseNextAuth)
 
     if (responseNextAuth?.error) {
-      console.log("Error: ", responseNextAuth.error)
+      // console.log("Error: ", responseNextAuth.error)
       setErrorLogin(responseNextAuth.error);
       return;
     }
@@ -61,8 +61,8 @@ const handleSubmitRegister = async (
 
   try {
     // Llama a la función para registrar al usuario
-    await registerUser(currentUser);
-
+    const resp = await registerUser(currentUser);
+    // console.log("resp", resp)
     // Establece el mensaje de éxito si el registro fue exitoso
     setRegistered("User successfully registered");
 
@@ -83,7 +83,7 @@ const handleSubmitRegister = async (
     router.push("/dashboard");
   } catch (err) {
     console.error("Error durante el registro:", err);
-    setRegistered(""+ err);
+    setRegistered("The email is already registered");
   }
 };
 ;

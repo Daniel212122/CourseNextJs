@@ -3,5 +3,5 @@ export interface IRepository<T> {
     getById(id: string): Promise<T | null>;
     add(entity: T): Promise<T>;
     update(entity: T): Promise<T>;
-    delete(id: string|number): Promise<void>;
+    delete(entity: T): Promise<void>;
   }

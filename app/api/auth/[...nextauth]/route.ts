@@ -3,7 +3,8 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from 'next-auth/providers/google'
 // import { useRouter } from "next/navigation";
 // const router = useRouter();
-export const authOptions: AuthOptions = {
+
+const handler= NextAuth({
   secret: process.env.AUTH_SECRET,
   providers: [
       GoogleProvider({
@@ -21,11 +22,12 @@ export const authOptions: AuthOptions = {
             email: { label: "email", type: "email", placeholder: "test@test.com" },
             password: { label: "Password", type: "password" }
           },
+
           async authorize(credentials, req) {
+            const apiBasePath= process.env.BASEPATH_API_USERS as string;
             // Add logic here to look up the user from the credentials supplied
             const res = await fetch(
-              `https://a9ub0zdqbh.execute-api.us-east-1.amazonaws.com/dev/user/login`,
-            // `http://localhost:4000/dev/user/login`,
+            apiBasePath + '/dev/user/login',
               {
                 method: "POST",
                 body: JSON.stringify({
@@ -36,53 +38,29 @@ export const authOptions: AuthOptions = {
               }
             );
             const user = await res.json();
-            console.log("user: ", user)
+            console.log("user.message: ", user.message)
             // if (user.error) throw user;
             
-            if (user.error){
-                console.log("userError: ", user) 
-                throw user;
+            if (user.message == "Authentication"){
+              return user;
             } 
-            return user;
+              throw user;
           }
         }),
       ],
       
         callbacks: {
           async jwt({ token, user, account }) {
-            if(account)token.provider = account.provider;
-            if (user) {
-              token.id = user.id;
-              token.email = user.email;
-              token.phonenumber = user.phonenumber;
-              token.name = user.name;
-              token.lastname = user.lastname;
-              token.status = user.status;
-              token.role = user.role;
-              token.image = user.image;
-            }
-            return token;
-          },
+            return{...token,...user,...account}
+            },
+            // console.log("jwt: ", [token, user])
           async session({ session, token }) {
-            session.user = {
-              id: token.id as string | undefined,
-              email: token.email as string ,
-              phonenumber: token.phonenumber as string | undefined,
-              name: token.name as string | undefined,
-              lastname: token.lastname as string | undefined,
-              password: token.password as string | undefined,
-              status: token.status as string | undefined,
-              role: token.role as string | undefined,
-              image: token.image as string | undefined,
-              provider: token.provider as string | undefined,
-            };
+            session.user = token as any
             return session;
           },
         },
         pages: {
           signIn:"/login"
-        }
-  } 
-
-  const handler = NextAuth(authOptions);
+      },
+    })
 export { handler as GET, handler as POST}

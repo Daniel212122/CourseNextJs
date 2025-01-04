@@ -9,6 +9,7 @@ export interface IUser {
 	role?: string;
 	image?: string;
 	provider?:string;
+	token?:string
 };
 
 export const emptyUser: IUser = {

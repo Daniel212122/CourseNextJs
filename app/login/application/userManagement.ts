@@ -25,9 +25,9 @@ export class UserManagement {
         }
     }
 
-    async deleteUser(email: string): Promise <{success: boolean; user: IUser|null}> {
+    async deleteUser(entity: IUser): Promise <{success: boolean; user: IUser|null}> {
         try {
-            await this.userRepository.delete(email);
+            await this.userRepository.delete(entity);
             return {success: true, user: null};
         } catch (error) {
             // console.error("delete error: ", error)

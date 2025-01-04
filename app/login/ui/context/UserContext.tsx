@@ -3,7 +3,7 @@ import React, { createContext, useEffect, useState } from "react";
 import { UserManagement } from '../../application/userManagement'
 import { IUser, emptyUser} from '../../domain/IUser'
 import { UserService } from "../../infrastructure/user.service";
-import { useSession } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 
 export type UserContextType = {
     currentUser: IUser;
@@ -11,9 +11,9 @@ export type UserContextType = {
     isEdit: boolean;
     setIsEdit: (isEdit: boolean) => void;
     users: IUser[] | null;
-    registerUser: (user: IUser  |undefined) => Promise<void>;
-    updateUser: (user: IUser) => Promise<void>; // Cambiar para reflejar la asincronía
-    // handleSubmitRegister: (event: React.FormEvent<HTMLFormElement>) => Promise<void>; // Definición para el submit
+    registerUser: (user: IUser)=>void;
+    updateUser: (user: IUser) => void; 
+    deleteUser: (user: IUser) => void;
 };
 
 
@@ -33,30 +33,32 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     const manager = new UserManagement(new UserService());
 
     const registerUser = async (user: IUser | undefined): Promise<void> => {
-    if (!user) {
+    // console.log("user: ", user)
+        if (!user) {
         console.error("No user provided");
         return; // Retornamos null si el usuario no fue definido.
     }
 
     try {
-        const dato = await manager.registerUser(user); // Llama al método de UserManagement.
-
-        if (dato.success) { // Supone que 'data.success' indica el éxito de la operación.
-            console.log("User registered successfully:", dato);
-            // setUpdateView(new Date()); // Actualiza la vista.
+        const data = await manager.registerUser(user); // Llama al método de UserManagement.
+        // console.log("data: ", data)
+        if (data.success) { // Supone que 'data.success' indica el éxito de la operación.
+            // console.log("User registered successfully:", data);
+            return 
         } else {
-            console.warn("Registration failed:", dato);
+            console.log("Registration failed:", data);
             throw new Error
             // return undefined; // Devuelve undefined si no fue exitoso.
         }
+        
     } catch (error) {
         console.error("Error registering user:", error);
         throw new Error
-    // return null; // Devuelve null en caso de error.
     }
 };
 
 const updateUser = async (user: IUser): Promise<void> => {
+    // console.log("user: ", user)
     if (!user) {
         console.error("No user provided");
         return; // Retornamos null si el usuario no fue definido.
@@ -66,19 +68,26 @@ const updateUser = async (user: IUser): Promise<void> => {
         const dato = await manager.updateUser(user.email, user ); // Llama al método de UserManagement.
 
         if (dato.success) { // Supone que 'data.success' indica el éxito de la operación.
-            console.log("User registered successfully:", data);
+            // console.log("User update successfully:", data);
             // setUpdateView(new Date()); // Actualiza la vista.
         } else {
-            console.warn("Registration failed:", data);
+            // console.warn("Registration failed:", data);
             throw new Error
             // return undefined; // Devuelve undefined si no fue exitoso.
         }
     } catch (error) {
-        console.error("Error registering user:", error);
+        // console.error("Error registering user:", error);
         throw new Error
     // return null; // Devuelve null en caso de error.
     }
 };
+    const deleteUser = (user:IUser)=>{
+        manager.deleteUser(user).then(data =>{
+            if(data.success){
+              signOut({callbackUrl: "/"})
+            }
+        })
+    }
 
 
     return (
@@ -90,6 +99,7 @@ const updateUser = async (user: IUser): Promise<void> => {
             users,
             registerUser,
             updateUser,
+            deleteUser,
             // handleSubmitRegister, // Agregamos esta función al contexto
         }}>
             {children}

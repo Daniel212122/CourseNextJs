@@ -19,6 +19,8 @@ export default function RootLayout({
     <html lang="en">
       <head>
       <link href="/css/app.css" rel="stylesheet" />
+      {/* <link href="@/app/ui/global.css" rel="stylesheet" /> */}
+
       </head>
       <body className={`${inter.className}antialiased`}>
         <SessionProvider>
