@@ -7,7 +7,7 @@ import Image from "next/image";
 import React, { useState, useEffect } from "react";
 
 const UpdateForm: React.FC = () => {
-  const { currentUser, updateUser,  deleteUser } = React.useContext(UserContext) as UserContextType;
+  const { currentUser, updateUser,  deleteUser,updated } = React.useContext(UserContext) as UserContextType;
   const { data } = useSession();
   const [updateMessage, setUpdateMessage] = useState<string | null>(null);
 
@@ -59,10 +59,10 @@ const UpdateForm: React.FC = () => {
       const updatedUser = { ...formData };
 
       await updateUser(updatedUser); // Llama a la función del contexto para actualizar el usuario
-      setUpdateMessage("Perfil actualizado con éxito");
+      // setUpdateMessage("Perfil actualizado con éxito");
     } catch (err) {
       console.error("Error actualizando perfil:", err);
-      setUpdateMessage("Error al actualizar el perfil");
+      // setUpdateMessage("Error al actualizar el perfil");
     }
   };
 
@@ -145,17 +145,15 @@ const UpdateForm: React.FC = () => {
             aria-live="polite"
             aria-atomic="true"
           >
-            {updateMessage && (
-              updateMessage === "Error al actualizar el perfil" ? (
+            {updated == "Updated"? (  
+                <p className="text-sm text-green-500">{updated}</p>
+              ) : (
                 <>
                   <ExclamationCircleIcon className="h-5 w-5 text-red-500" />
-                  <p className="text-sm text-red-500">{updateMessage}</p>
+                  <p className="text-sm text-red-500">{updated}</p>
                 </>
-              ) : (
-
-                <p className="text-sm text-green-500">{updateMessage}</p>
               )
-            )}
+            }
           </div>
         </form>
         <button onClick={()=> {deleteUser(formData)}}>Delete User</button>

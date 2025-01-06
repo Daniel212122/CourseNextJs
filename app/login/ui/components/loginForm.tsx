@@ -13,11 +13,12 @@ import { useRouter } from "next/navigation";
 const LoginForm: React.FC = () => {
   const [errorLogin, setErrorLogin] = useState<string | null>(null)
   const [showLoginForm, setShowLoginForm] = useState<boolean>(true);
-  const { currentUser, setCurrentUser, isEdit, setIsEdit, registerUser} = React.useContext(UserContext) as UserContextType;
-  const [registered, setRegistered] = useState<string | null>(null);
+  const { currentUser, setCurrentUser, isEdit, setIsEdit, registerUser, registered} = React.useContext(UserContext) as UserContextType;
+  // const [registered, setRegistered] = useState<string | null>(null);
   const router = useRouter();
   const [email, setEmail] = useState<string>("daniel@gmail.com");
   const [password, setPassword] = useState<string>("123456Df");
+  const [messageRegister, setMessageRegister] = useState("")
   // const [role,setRole] = useState<IUser | null>(null)
   const roles = ['Admin', 'Viewer', 'Operator'];
   // Ajusta el formulario visible según el ancho de pantalla
@@ -57,33 +58,35 @@ const handleSubmitRegister = async (
   event: React.FormEvent<HTMLFormElement>
 ) => {
   event.preventDefault();
-  setRegistered(null); // Reinicia el estado de registro
-
   try {
     // Llama a la función para registrar al usuario
-    const resp = await registerUser(currentUser);
-    // console.log("resp", resp)
+    await registerUser(currentUser);
+    // console.log({resp})
+    if(registered == "Registered"){
+      // setMessageRegister(registered)
+      const responseNextAuth = await signIn("credentials", {
+        email: currentUser.email, // Usa el email registrado
+        password: currentUser.password, // Usa la contraseña registrada
+        redirect: false, // Redirige manualmente después
+      });
+  
+      if (responseNextAuth?.error) {
+        console.error("Error al iniciar sesión después del registro:", responseNextAuth.error);
+        // setMessageRegister("Error during login after registration");
+        return;
+      }
+    }else{
+      // setMessageRegister(registered)
+    }   
     // Establece el mensaje de éxito si el registro fue exitoso
-    setRegistered("User successfully registered");
 
     // Intenta iniciar sesión automáticamente después del registro
-    const responseNextAuth = await signIn("credentials", {
-      email: currentUser.email, // Usa el email registrado
-      password: currentUser.password, // Usa la contraseña registrada
-      redirect: false, // Redirige manualmente después
-    });
-
-    if (responseNextAuth?.error) {
-      console.error("Error al iniciar sesión después del registro:", responseNextAuth.error);
-      setRegistered("Error during login after registration");
-      return;
-    }
 
     // Redirige al dashboard
     router.push("/dashboard");
   } catch (err) {
     console.error("Error durante el registro:", err);
-    setRegistered("The email is already registered");
+    setMessageRegister("The email is already registered");
   }
 };
 ;
@@ -181,13 +184,16 @@ const handleSubmitRegister = async (
                 aria-live="polite"
                 aria-atomic="true"
               >
-                {registered=="Error"? (
-                  <>  
-                  <ExclamationCircleIcon className="h-5 w-5 text-red-500" />
-                  <p className="text-sm text-red-500">{registered}</p>
-                </>
-                ) : 
-                <p className="text-sm text-green-500">{registered}</p>
+                {registered == "Registered"? (
+                <p className="text-sm text-green-500">{messageRegister}</p>
+                
+                ) : (
+                  <>
+                    <ExclamationCircleIcon className="h-5 w-5 text-red-500" />
+                    <p className="text-sm text-red-500">{messageRegister}</p>
+                  </>
+                ) 
+                
                 }
                 </div>
 

@@ -14,6 +14,8 @@ export type UserContextType = {
     registerUser: (user: IUser)=>void;
     updateUser: (user: IUser) => void; 
     deleteUser: (user: IUser) => void;
+    registered: string;
+    updated: string;
 };
 
 
@@ -30,28 +32,33 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     const [currentUser, setCurrentUser] = useState(emptyUser);
     const [users, setUsers] = useState<IUser[] | null>(null);
     const {data} = useSession();
+    const [registered, setRegistered ] = useState("Registered")
+    const [updated, setupdated ] = useState("Updated")
     const manager = new UserManagement(new UserService());
 
-    const registerUser = async (user: IUser | undefined): Promise<void> => {
-    // console.log("user: ", user)
+    const registerUser = async (user: IUser | undefined): Promise<IUser| null> => {
+    console.log("user: ", user)
         if (!user) {
-        console.error("No user provided");
-        return; // Retornamos null si el usuario no fue definido.
+            setRegistered("No se ingresaron datos de usuario")
+            console.error("No user provided");
+        return null  // Retornamos null si el usuario no fue definido.
     }
 
     try {
-        const data = await manager.registerUser(user); // Llama al método de UserManagement.
-        // console.log("data: ", data)
-        if (data.success) { // Supone que 'data.success' indica el éxito de la operación.
-            // console.log("User registered successfully:", data);
-            return 
+        const data = await manager.registerUser(user); 
+        console.log("data: ", data)
+        if (data.success) {
+            setRegistered("Registered")
+            return data.user
         } else {
             console.log("Registration failed:", data);
+            setRegistered("The email is already registered")
             throw new Error
             // return undefined; // Devuelve undefined si no fue exitoso.
         }
         
     } catch (error) {
+        setRegistered("Server error")
         console.error("Error registering user:", error);
         throw new Error
     }
@@ -60,7 +67,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
 const updateUser = async (user: IUser): Promise<void> => {
     // console.log("user: ", user)
     if (!user) {
-        console.error("No user provided");
+        setupdated("No user provided");
         return; // Retornamos null si el usuario no fue definido.
     }
 
@@ -68,14 +75,14 @@ const updateUser = async (user: IUser): Promise<void> => {
         const dato = await manager.updateUser(user.email, user ); // Llama al método de UserManagement.
 
         if (dato.success) { // Supone que 'data.success' indica el éxito de la operación.
-            // console.log("User update successfully:", data);
-            // setUpdateView(new Date()); // Actualiza la vista.
+            setupdated("Updated")
         } else {
-            // console.warn("Registration failed:", data);
+            setupdated("Error updated")
             throw new Error
             // return undefined; // Devuelve undefined si no fue exitoso.
         }
     } catch (error) {
+        setupdated("Server error")
         // console.error("Error registering user:", error);
         throw new Error
     // return null; // Devuelve null en caso de error.
@@ -100,6 +107,8 @@ const updateUser = async (user: IUser): Promise<void> => {
             registerUser,
             updateUser,
             deleteUser,
+            registered,
+            updated,
             // handleSubmitRegister, // Agregamos esta función al contexto
         }}>
             {children}
